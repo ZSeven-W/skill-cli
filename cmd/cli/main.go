@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fini/skill-cli/internal/create"
+	"github.com/fini/skill-cli/internal/discover"
 	"github.com/fini/skill-cli/internal/validate"
 	"github.com/spf13/cobra"
 )
@@ -18,6 +19,7 @@ func main() {
 	root.AddCommand(
 		create.NewCommand(),
 		validate.NewCommand(),
+		discover.NewListCommand(),
 	)
 
 	if err := root.Execute(); err != nil {
