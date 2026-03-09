@@ -29,7 +29,7 @@ go install github.com/ZSeven-W/skill-cli@latest
 ### Create a skill
 
 ```bash
-skill-cli create my-skill --name "My Skill" --description "Does useful things"
+skill-cli create --name "My Skill" --description "Does useful things"
 ```
 
 ### Validate a skill
