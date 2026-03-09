@@ -74,6 +74,9 @@ func prepareOutput(path string, force bool) error {
 		if !force {
 			return fmt.Errorf("output path %s already exists (use --force to overwrite)", path)
 		}
+		if err := validateSafeDeletePath(path); err != nil {
+			return err
+		}
 		if err := os.RemoveAll(path); err != nil {
 			return fmt.Errorf("clear output path: %w", err)
 		}
@@ -97,4 +100,31 @@ func resolveSkillFile(path string) (string, error) {
 		return file, nil
 	}
 	return path, nil
+}
+
+func validateSafeDeletePath(path string) error {
+	cleaned := filepath.Clean(path)
+	if cleaned == "" || cleaned == "." || cleaned == string(filepath.Separator) || cleaned == "~" {
+		return fmt.Errorf("refusing to remove dangerous path %q", path)
+	}
+
+	abs, err := filepath.Abs(cleaned)
+	if err != nil {
+		return fmt.Errorf("resolve absolute path for %q: %w", path, err)
+	}
+
+	if abs == string(filepath.Separator) || abs == "/home" {
+		return fmt.Errorf("refusing to remove dangerous path %q", path)
+	}
+
+	home, err := os.UserHomeDir()
+	if err == nil && home != "" {
+		home = filepath.Clean(home)
+		parent := filepath.Dir(home)
+		if abs == home || abs == parent {
+			return fmt.Errorf("refusing to remove user directory path %q", path)
+		}
+	}
+
+	return nil
 }

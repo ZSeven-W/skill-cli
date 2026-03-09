@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/fini/skill-cli/internal/formats"
@@ -48,11 +49,17 @@ func NewCommand() *cobra.Command {
 
 func createSkill(opts options) error {
 	slug := sanitizeName(opts.Name)
+	if slug == "" {
+		return fmt.Errorf("skill name %q results in an empty slug; use letters or numbers in --name", opts.Name)
+	}
 	skillDir := filepath.Join(opts.OutputDir, slug)
 
 	if _, err := os.Stat(skillDir); err == nil {
 		if !opts.Force {
 			return fmt.Errorf("directory %s already exists (use --force to overwrite)", skillDir)
+		}
+		if err := validateSafeDeletePath(skillDir); err != nil {
+			return err
 		}
 		if err := os.RemoveAll(skillDir); err != nil {
 			return fmt.Errorf("remove existing directory: %w", err)
@@ -98,7 +105,39 @@ func sanitizeName(name string) string {
 	n := strings.TrimSpace(strings.ToLower(name))
 	n = strings.ReplaceAll(n, " ", "-")
 	n = strings.ReplaceAll(n, "_", "-")
+	invalid := regexp.MustCompile(`[^a-z0-9-]+`)
+	n = invalid.ReplaceAllString(n, "")
+	n = strings.Trim(n, "-")
+	repeatedDash := regexp.MustCompile(`-+`)
+	n = repeatedDash.ReplaceAllString(n, "-")
 	return n
+}
+
+func validateSafeDeletePath(path string) error {
+	cleaned := filepath.Clean(path)
+	if cleaned == "" || cleaned == "." || cleaned == string(filepath.Separator) || cleaned == "~" {
+		return fmt.Errorf("refusing to remove dangerous path %q", path)
+	}
+
+	abs, err := filepath.Abs(cleaned)
+	if err != nil {
+		return fmt.Errorf("resolve absolute path for %q: %w", path, err)
+	}
+
+	if abs == string(filepath.Separator) || abs == "/home" {
+		return fmt.Errorf("refusing to remove dangerous path %q", path)
+	}
+
+	home, err := os.UserHomeDir()
+	if err == nil && home != "" {
+		home = filepath.Clean(home)
+		parent := filepath.Dir(home)
+		if abs == home || abs == parent {
+			return fmt.Errorf("refusing to remove user directory path %q", path)
+		}
+	}
+
+	return nil
 }
 
 func defaultBody(name string) string {
