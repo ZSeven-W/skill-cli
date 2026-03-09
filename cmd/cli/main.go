@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fini/skill-cli/internal/convert"
 	"github.com/fini/skill-cli/internal/create"
 	"github.com/fini/skill-cli/internal/discover"
 	"github.com/fini/skill-cli/internal/validate"
@@ -20,6 +21,7 @@ func main() {
 		create.NewCommand(),
 		validate.NewCommand(),
 		discover.NewListCommand(),
+		convert.NewCommand(),
 	)
 
 	if err := root.Execute(); err != nil {
