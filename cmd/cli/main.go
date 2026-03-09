@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fini/skill-cli/internal/create"
+	"github.com/fini/skill-cli/internal/validate"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +15,10 @@ func main() {
 		Short: "Manage AI agent skills across platforms",
 	}
 
-	root.AddCommand(create.NewCommand())
+	root.AddCommand(
+		create.NewCommand(),
+		validate.NewCommand(),
+	)
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
