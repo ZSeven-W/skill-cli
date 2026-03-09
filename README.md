@@ -32,6 +32,8 @@ go install github.com/ZSeven-W/skill-cli@latest
 skill-cli create --name "My Skill" --description "Does useful things"
 ```
 
+Use `--name` and `--description` flags for `create` (positional arguments are not supported).
+
 ### Validate a skill
 
 ```bash
