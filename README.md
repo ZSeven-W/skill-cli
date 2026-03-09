@@ -1,34 +1,69 @@
 # skill-cli
 
-CLI for creating, converting, discovering, and validating `SKILL.md` based skills.
+> Cross-platform CLI for AI agent skills
 
-## Validate skills
+Create, validate, discover, and convert skills for AI agents (OpenClaw, Claude Code, etc.)
 
-Run default validation (text output):
+![Go](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)
+![MIT License](https://img.shields.io/badge/License-MIT-green.svg)
+
+## Why skill-cli?
+
+Each AI agent (Claude Code, OpenClaw, Cursor) has its own skill format. skill-cli provides a unified tool to manage skills across platforms.
+
+## Features
+
+- ✨ **Create** — Scaffold new skills from templates
+- ✅ **Validate** — Full schema and best-practice validation
+- 🔍 **Discover** — Find installed skills across platforms
+- 🔄 **Convert** — Transform skills between formats
+
+## Installation
+
+```bash
+go install github.com/ZSeven-W/skill-cli@latest
+```
+
+## Commands
+
+### Create a skill
+
+```bash
+skill-cli create my-skill --name "My Skill" --description "Does useful things"
+```
+
+### Validate a skill
 
 ```bash
 skill-cli validate ./my-skill
+skill-cli validate ./my-skill --strict      # Treat warnings as errors
+skill-cli validate ./my-skill --format json  # JSON output
 ```
 
-Run with JSON output:
+### List installed skills
 
 ```bash
-skill-cli validate ./my-skill --format json
+skill-cli list
 ```
 
-Run strict validation (best-practice warnings fail validation):
+### Convert between formats
 
 ```bash
-skill-cli validate ./my-skill --strict
+skill-cli convert --from openclaw --to claude --input ./my-skill --output ./converted
 ```
 
-Combine strict mode with JSON output:
+## Supported Platforms
 
-```bash
-skill-cli validate ./my-skill --strict --format json
-```
+- **OpenClaw**: `~/.nvm/.../openclaw/skills/`
+- **Claude Code**: `~/.claude/skills/`
+- Custom paths via environment variables
 
-Validation now includes:
-- Frontmatter schema checks (`name`, `description`, optional `version`, `metadata`, `tags`)
-- `SKILL.md` structure checks (heading, overview, usage)
-- Best-practice checks (description quality, examples, referenced directories)
+## Validation Features
+
+- Frontmatter schema checks (`name`, `description`, `version`, `tags`, `metadata`)
+- SKILL.md structure validation (heading, Overview, Usage)
+- Best-practice checks (description quality, examples, directory references)
+
+## License
+
+MIT
