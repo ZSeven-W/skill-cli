@@ -187,10 +187,11 @@ func validateBestPractices(meta frontmatterSchema, body, skillFile string, stric
 func validateActionBoundaries(meta frontmatterSchema, body string, strict bool, result *Result) {
 	text := meta.Name + "\n" + meta.Description + "\n" + body
 	socialPattern := regexp.MustCompile(`(?i)\b(twitter|x/twitter|tweet|tweets|linkedin|bluesky|mastodon|social media|social post|social posts)\b`)
-	actionPattern := regexp.MustCompile(`(?i)\b(post|publish|schedule|reply|comment|like|follow|retweet|delete|dm|message)\b`)
+	actionPattern := regexp.MustCompile(`(?i)\b(post|posts|posting|publish|publishes|published|publishing|schedule|schedules|scheduled|scheduling|reply|replies|replying|comment|comments|commenting|like|likes|liking|follow|follows|following|retweet|retweets|retweeting|delete|deletes|deleted|deleting|dm|dms|dm'ing|message|messages|messaging)\b`)
 	approvalPattern := regexp.MustCompile(`(?i)\b(approval|approve|approved|confirm|confirmation|permission|consent|human review|human-in-the-loop|dry run|dry-run|draft only|draft-only)\b`)
+	negatedApprovalPattern := regexp.MustCompile(`(?i)\b(without|no|never|do not|don't|cannot|can't|skip|bypass)\s+(user\s+|human\s+|manual\s+|explicit\s+)?(approval|approve|confirmation|confirm|review|consent|permission)\b`)
 
-	if socialPattern.MatchString(text) && actionPattern.MatchString(text) && !approvalPattern.MatchString(text) {
+	if socialPattern.MatchString(text) && actionPattern.MatchString(text) && (!approvalPattern.MatchString(text) || negatedApprovalPattern.MatchString(text)) {
 		addBestPracticeIssue(result, strict, "social action skills should state approval or confirmation boundaries before publishing, scheduling, replying, liking, following, or deleting content")
 	}
 }

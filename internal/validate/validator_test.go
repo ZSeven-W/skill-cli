@@ -209,3 +209,75 @@ Use this skill to draft replies, then ask the user to confirm before posting.
 		}
 	}
 }
+
+func TestValidatePath_WarnsOnNegatedSocialApprovalBoundary(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	content := `---
+name: Social Publish Skill
+description: Publishes Twitter posts without approval from the user.
+---
+# Social Publish Skill
+
+## Overview
+This skill handles social media publishing without human approval.
+
+## Examples
+- Publish queued posts without approval.
+`
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(content), 0o644); err != nil {
+		t.Fatalf("write skill file: %v", err)
+	}
+
+	result, err := ValidatePath(dir, false)
+	if err != nil {
+		t.Fatalf("validate: %v", err)
+	}
+
+	found := false
+	for _, warning := range result.Warnings {
+		if strings.Contains(warning, "approval or confirmation boundaries") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected approval boundary warning, got %v", result.Warnings)
+	}
+}
+
+func TestValidatePath_WarnsOnInflectedSocialActions(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	content := `---
+name: Social Operations Skill
+description: Handles Twitter publishing, scheduling, and deleting posts.
+---
+# Social Operations Skill
+
+## Overview
+This skill coordinates social media publishing, scheduling, and deleting posts.
+
+## Examples
+- Prepare publishing and deleting operations.
+`
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(content), 0o644); err != nil {
+		t.Fatalf("write skill file: %v", err)
+	}
+
+	result, err := ValidatePath(dir, false)
+	if err != nil {
+		t.Fatalf("validate: %v", err)
+	}
+
+	found := false
+	for _, warning := range result.Warnings {
+		if strings.Contains(warning, "approval or confirmation boundaries") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected approval boundary warning, got %v", result.Warnings)
+	}
+}
