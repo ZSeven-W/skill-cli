@@ -165,6 +165,8 @@ func validateBestPractices(meta frontmatterSchema, body, skillFile string, stric
 		addBestPracticeIssue(result, strict, "no examples found; add an example section or fenced code blocks")
 	}
 
+	validateActionBoundaries(meta, body, strict, result)
+
 	mentioned := map[string]bool{}
 	for _, dir := range []string{"scripts", "references", "assets"} {
 		pattern := regexp.MustCompile(fmt.Sprintf(`(?i)\b%s/`, regexp.QuoteMeta(dir)))
@@ -179,6 +181,17 @@ func validateBestPractices(meta frontmatterSchema, body, skillFile string, stric
 		if info, err := os.Stat(full); err != nil || !info.IsDir() {
 			addBestPracticeIssue(result, strict, fmt.Sprintf("body references %s/ but %s does not exist", dir, full))
 		}
+	}
+}
+
+func validateActionBoundaries(meta frontmatterSchema, body string, strict bool, result *Result) {
+	text := meta.Name + "\n" + meta.Description + "\n" + body
+	socialPattern := regexp.MustCompile(`(?i)\b(twitter|x/twitter|tweet|tweets|linkedin|bluesky|mastodon|social media|social post|social posts)\b`)
+	actionPattern := regexp.MustCompile(`(?i)\b(post|publish|schedule|reply|comment|like|follow|retweet|delete|dm|message)\b`)
+	approvalPattern := regexp.MustCompile(`(?i)\b(approval|approve|approved|confirm|confirmation|permission|consent|human review|human-in-the-loop|dry run|dry-run|draft only|draft-only)\b`)
+
+	if socialPattern.MatchString(text) && actionPattern.MatchString(text) && !approvalPattern.MatchString(text) {
+		addBestPracticeIssue(result, strict, "social action skills should state approval or confirmation boundaries before publishing, scheduling, replying, liking, following, or deleting content")
 	}
 }
 
