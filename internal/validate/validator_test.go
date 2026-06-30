@@ -130,3 +130,154 @@ Do the task.
 		t.Fatalf("strict mode should fail")
 	}
 }
+
+func TestValidatePath_WarnsWhenSocialActionSkillLacksApprovalBoundary(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	content := `---
+name: Twitter Reply Skill
+description: Publishes Twitter replies for support teams after reading a user complaint.
+---
+# Twitter Reply Skill
+
+## Overview
+This skill writes and publishes replies for social media support queues.
+
+## Usage
+Use this skill when support teams need to reply to customer tweets.
+
+## Examples
+- Publish a reply to a tweet that asks for order help.
+`
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(content), 0o644); err != nil {
+		t.Fatalf("write skill file: %v", err)
+	}
+
+	result, err := ValidatePath(dir, false)
+	if err != nil {
+		t.Fatalf("validate: %v", err)
+	}
+	if len(result.Errors) != 0 {
+		t.Fatalf("expected no errors, got %v", result.Errors)
+	}
+
+	found := false
+	for _, warning := range result.Warnings {
+		if strings.Contains(warning, "approval or confirmation boundaries") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected approval boundary warning, got %v", result.Warnings)
+	}
+}
+
+func TestValidatePath_AcceptsSocialActionSkillWithApprovalBoundary(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	content := `---
+name: Social Draft Skill
+description: Drafts Twitter replies for support teams and waits for explicit approval before publishing.
+---
+# Social Draft Skill
+
+## Overview
+This skill prepares social media replies while keeping publication user-approved.
+
+## Usage
+Use this skill to draft replies, then ask the user to confirm before posting.
+
+## Examples
+- Draft a reply and wait for approval before publishing.
+`
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(content), 0o644); err != nil {
+		t.Fatalf("write skill file: %v", err)
+	}
+
+	result, err := ValidatePath(dir, false)
+	if err != nil {
+		t.Fatalf("validate: %v", err)
+	}
+	if len(result.Errors) != 0 {
+		t.Fatalf("expected no errors, got %v", result.Errors)
+	}
+	for _, warning := range result.Warnings {
+		if strings.Contains(warning, "approval or confirmation boundaries") {
+			t.Fatalf("did not expect approval boundary warning, got %v", result.Warnings)
+		}
+	}
+}
+
+func TestValidatePath_WarnsOnNegatedSocialApprovalBoundary(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	content := `---
+name: Social Publish Skill
+description: Publishes Twitter posts without approval from the user.
+---
+# Social Publish Skill
+
+## Overview
+This skill handles social media publishing without human approval.
+
+## Examples
+- Publish queued posts without approval.
+`
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(content), 0o644); err != nil {
+		t.Fatalf("write skill file: %v", err)
+	}
+
+	result, err := ValidatePath(dir, false)
+	if err != nil {
+		t.Fatalf("validate: %v", err)
+	}
+
+	found := false
+	for _, warning := range result.Warnings {
+		if strings.Contains(warning, "approval or confirmation boundaries") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected approval boundary warning, got %v", result.Warnings)
+	}
+}
+
+func TestValidatePath_WarnsOnInflectedSocialActions(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	content := `---
+name: Social Operations Skill
+description: Handles Twitter publishing, scheduling, and deleting posts.
+---
+# Social Operations Skill
+
+## Overview
+This skill coordinates social media publishing, scheduling, and deleting posts.
+
+## Examples
+- Prepare publishing and deleting operations.
+`
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(content), 0o644); err != nil {
+		t.Fatalf("write skill file: %v", err)
+	}
+
+	result, err := ValidatePath(dir, false)
+	if err != nil {
+		t.Fatalf("validate: %v", err)
+	}
+
+	found := false
+	for _, warning := range result.Warnings {
+		if strings.Contains(warning, "approval or confirmation boundaries") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected approval boundary warning, got %v", result.Warnings)
+	}
+}
